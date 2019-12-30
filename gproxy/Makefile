@@ -1,17 +1,15 @@
 SHELL = /bin/sh
 SYSTEM = $(shell uname)
-C++ = g++
-CC = gcc
+C++ = i686-w64-mingw32-g++
+CC = i686-w64-mingw32-gcc
 DFLAGS =
-OFLAGS = -O3
-LFLAGS = -L. -L../bncsutil/src/bncsutil/ -lbncsutil -ldl -lcurses -lgmp
+OFLAGS = -O2
+LFLAGS = -static -static-libgcc -static-libstdc++ -L. -lwinmm -lwsock32 -lgmp.dll -lssp
 CFLAGS =
 
 ifeq ($(SYSTEM),Darwin)
 DFLAGS += -D__APPLE__
 OFLAGS += -flat_namespace
-else
-LFLAGS += -lrt
 endif
 
 ifeq ($(SYSTEM),FreeBSD)
@@ -23,9 +21,9 @@ DFLAGS += -D__SOLARIS__
 LFLAGS += -lresolv -lsocket -lnsl
 endif
 
-CFLAGS += $(OFLAGS) $(DFLAGS) -I. -I../bncsutil/src/
+CFLAGS += $(OFLAGS) $(DFLAGS) -I.
 
-OBJS = bncsutilinterface.o bnet.o bnetprotocol.o commandpacket.o config.o gameprotocol.o gproxy.o gpsprotocol.o socket.o util.o
+OBJS = commandpacket.o config.o gameprotocol.o gproxy.o gpsprotocol.o socket.o util.o incominggamehost.o
 COBJS =
 PROGS = ./gproxy++
 
@@ -47,13 +45,11 @@ $(COBJS): %.o: %.c
 
 all: $(PROGS)
 
-bncsutilinterface.o: gproxy.h util.h bncsutilinterface.h
-bnet.o: gproxy.h util.h config.h socket.h commandpacket.h bncsutilinterface.h bnetprotocol.h bnet.h gameprotocol.h
-bnetprotocol.o: gproxy.h util.h bnetprotocol.h
 commandpacket.o: gproxy.h commandpacket.h
 config.o: gproxy.h config.h
 gameprotocol.o: gproxy.h util.h gameprotocol.h
-gproxy.o: gproxy.h util.h config.h socket.h commandpacket.h bnetprotocol.h bnet.h gameprotocol.h gpsprotocol.h
+incominggamehost.o: gproxy.h util.h incominggamehost.h
+gproxy.o: gproxy.h util.h config.h socket.h commandpacket.h gameprotocol.h gpsprotocol.h incominggamehost.h
 gpsprotocol.o: gproxy.h util.h gpsprotocol.h
 socket.o: gproxy.h util.h socket.h
 util.o: gproxy.h util.h

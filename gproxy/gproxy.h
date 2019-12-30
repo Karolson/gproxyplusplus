@@ -21,7 +21,7 @@
 
 // standard integer sizes for 64 bit compatibility
 
-#ifdef WIN32
+#ifdef _MSC_VER
  #include "ms_stdint.h"
 #else
  #include <stdint.h>
@@ -80,7 +80,6 @@ class CTCPServer;
 class CTCPSocket;
 class CTCPClient;
 class CUDPSocket;
-class CBNET;
 class CIncomingGameHost;
 class CGameProtocol;
 class CGPSProtocol;
@@ -94,7 +93,6 @@ public:
 	CTCPSocket *m_LocalSocket;
 	CTCPClient *m_RemoteSocket;
 	CUDPSocket *m_UDPSocket;
-	CBNET *m_BNET;
 	vector<CIncomingGameHost *> m_Games;
 	CGameProtocol *m_GameProtocol;
 	CGPSProtocol *m_GPSProtocol;
@@ -105,14 +103,6 @@ public:
 	uint32_t m_TotalPacketsReceivedFromLocal;
 	uint32_t m_TotalPacketsReceivedFromRemote;
 	bool m_Exiting;
-	bool m_TFT;
-	string m_War3Path;
-	string m_CDKeyROC;
-	string m_CDKeyTFT;
-	string m_Server;
-	string m_Username;
-	string m_Password;
-	string m_Channel;
 	uint32_t m_War3Version;
 	uint16_t m_Port;
 	uint32_t m_LastConnectionAttemptTime;
@@ -135,7 +125,7 @@ public:
 	string m_JoinedName;
 	string m_HostName;
 
-	CGProxy( bool nTFT, string nWar3Path, string nCDKeyROC, string nCDKeyTFT, string nServer, string nUsername, string nPassword, string nChannel, uint32_t nWar3Version, uint16_t nPort, BYTEARRAY nEXEVersion, BYTEARRAY nEXEVersionHash, string nPasswordHashType );
+	CGProxy( uint32_t nWar3Version, uint16_t nPort );
 	~CGProxy( );
 
 	// processing functions
