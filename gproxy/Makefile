@@ -43,7 +43,7 @@ $(COBJS): %.o: %.c
 
 ./gproxy++: $(OBJS) $(COBJS)
 
-all: $(PROGS)
+all: $(PROGS); cp ./gproxy++.exe ../gproxy++.exe
 
 commandpacket.o: gproxy.h commandpacket.h
 config.o: gproxy.h config.h
