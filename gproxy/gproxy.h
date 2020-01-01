@@ -88,58 +88,58 @@ class CCommandPacket;
 class CGProxy
 {
 public:
-	string m_Version;
-	CTCPServer *m_LocalServer;
-	CTCPSocket *m_LocalSocket;
-	CTCPClient *m_RemoteSocket;
-	CUDPSocket *m_UDPSocket;
-	vector<CIncomingGameHost *> m_Games;
-	CGameProtocol *m_GameProtocol;
-	CGPSProtocol *m_GPSProtocol;
-	queue<CCommandPacket *> m_LocalPackets;
-	queue<CCommandPacket *> m_RemotePackets;
-	queue<CCommandPacket *> m_PacketBuffer;
-	vector<unsigned char> m_Laggers;
-	uint32_t m_TotalPacketsReceivedFromLocal;
-	uint32_t m_TotalPacketsReceivedFromRemote;
-	bool m_Exiting;
-	uint32_t m_War3Version;
-	uint16_t m_Port;
-	uint32_t m_LastConnectionAttemptTime;
-	uint32_t m_LastRefreshTime;
-	string m_RemoteServerIP;
-	uint16_t m_RemoteServerPort;
-	bool m_GameIsReliable;
-	bool m_GameStarted;
-	bool m_LeaveGameSent;
-	bool m_ActionReceived;
-	bool m_Synchronized;
-	uint16_t m_ReconnectPort;
-	unsigned char m_PID;
-	unsigned char m_ChatPID;
-	uint32_t m_ReconnectKey;
-	unsigned char m_NumEmptyActions;
-	unsigned char m_NumEmptyActionsUsed;
-	uint32_t m_LastAckTime;
-	uint32_t m_LastActionTime;
-	string m_JoinedName;
-	string m_HostName;
+    string m_Version;
+    CTCPServer *m_LocalServer;
+    CTCPSocket *m_LocalSocket;
+    CTCPClient *m_RemoteSocket;
+    CUDPSocket *m_UDPSocket;
+    vector<CIncomingGameHost *> m_Games;
+    CGameProtocol *m_GameProtocol;
+    CGPSProtocol *m_GPSProtocol;
+    queue<CCommandPacket *> m_LocalPackets;
+    queue<CCommandPacket *> m_RemotePackets;
+    queue<CCommandPacket *> m_PacketBuffer;
+    vector<unsigned char> m_Laggers;
+    uint32_t m_TotalPacketsReceivedFromLocal;
+    uint32_t m_TotalPacketsReceivedFromRemote;
+    bool m_Exiting;
+    uint32_t m_War3Version;
+    uint16_t m_Port;
+    uint32_t m_LastConnectionAttemptTime;
+    uint32_t m_LastRefreshTime;
+    string m_RemoteServerIP;
+    uint16_t m_RemoteServerPort;
+    bool m_GameIsReliable;
+    bool m_GameStarted;
+    bool m_LeaveGameSent;
+    bool m_ActionReceived;
+    bool m_Synchronized;
+    uint16_t m_ReconnectPort;
+    unsigned char m_PID;
+    unsigned char m_ChatPID;
+    uint32_t m_ReconnectKey;
+    unsigned char m_NumEmptyActions;
+    unsigned char m_NumEmptyActionsUsed;
+    uint32_t m_LastAckTime;
+    uint32_t m_LastActionTime;
+    string m_JoinedName;
+    string m_HostName;
 
-	CGProxy( uint32_t nWar3Version, uint16_t nPort );
-	~CGProxy( );
+    CGProxy( uint32_t nWar3Version, uint16_t nPort );
+    ~CGProxy( );
 
-	// processing functions
+    // processing functions
 
-	bool Update( long usecBlock );
+    bool Update( long usecBlock );
 
-	void ExtractLocalPackets( );
-	void ProcessLocalPackets( );
-	void ExtractRemotePackets( );
-	void ProcessRemotePackets( );
+    void ExtractLocalPackets( );
+    void ProcessLocalPackets( );
+    void ExtractRemotePackets( );
+    void ProcessRemotePackets( );
 
-	bool AddGame( CIncomingGameHost *game );
-	void SendLocalChat( string message );
-	void SendEmptyAction( );
+    bool AddGame( CIncomingGameHost *game );
+    void SendLocalChat( string message );
+    void SendEmptyAction( );
 };
 
 #endif
