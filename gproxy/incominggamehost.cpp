@@ -18,6 +18,7 @@ CIncomingGameHost :: CIncomingGameHost( uint16_t nGameType, uint16_t nParameter,
 	m_Status = nStatus;
 	m_ElapsedTime = nElapsedTime;
 	m_GameName = nGameName;
+	m_OpenSlots = 12;
 	m_SlotsTotal = nSlotsTotal;
 	m_HostCounter = nHostCounter;
 	m_StatString = nStatString;

@@ -48,6 +48,10 @@
 
 string gLogFile = ".gproxy.log";
 CGProxy *gGProxy = NULL;
+const char *dotsURL = "thdots.ru";
+string game1Name = "|c00FF0000TOHO DOTA";
+string game2Name = "|c00FF0000TOHO DOTA N2";
+string gameTBAName = "|c00FF0000TBA/CUSTOM";
 
 uint32_t GetTime( )
 {
@@ -106,21 +110,21 @@ void CONSOLE_Print( string message, bool log )
     cout << message << endl;
 }
 
-BYTEARRAY http_GetStats(string url, string path) {
+string http_Get (string path) {
     WSADATA wsaData;
     SOCKET Socket;
     SOCKADDR_IN SockAddr;
     struct hostent *host;
     string get_http;
 
-    get_http = "GET " + path + " HTTP/1.1\r\nHost: " + url + "\r\nConnection: close\r\n\r\n";
+    get_http = "GET " + path + " HTTP/1.1\r\nHost: " + dotsURL + "\r\nConnection: close\r\n\r\n";
 
     if (WSAStartup(MAKEWORD(2,2), &wsaData) != 0) {
         CONSOLE_Print( "WSAStartup failed.", true );
     }
 
     Socket = socket(AF_INET,SOCK_STREAM, IPPROTO_TCP);
-    host = gethostbyname(url.c_str());
+    host = gethostbyname(dotsURL);
 
     SockAddr.sin_port=htons(80);
     SockAddr.sin_family=AF_INET;
@@ -133,7 +137,7 @@ BYTEARRAY http_GetStats(string url, string path) {
     
     char buffer[10000];
     string http_header;
-    BYTEARRAY stats;
+    string payload;
     int nDataLength;
     while ((nDataLength = recv(Socket, buffer, 10000, 0)) > 0) {
         int i = 0;
@@ -154,7 +158,7 @@ BYTEARRAY http_GetStats(string url, string path) {
             }
         }
         while (i < headerSize + contentLength) {
-            stats.push_back((unsigned char)buffer[i]);
+            payload += buffer[i];
             i += 1;
         }
     }
@@ -162,7 +166,32 @@ BYTEARRAY http_GetStats(string url, string path) {
     closesocket(Socket);
     WSACleanup();
 
+    return payload;
+}
+
+BYTEARRAY http_GetStats(string path) {
+    BYTEARRAY stats;
+    string response = http_Get(path);
+    for (int i = 0; i < response.length(); i++) {
+        stats.push_back((unsigned char)response[i]);
+    }
     return stats;
+}
+
+uint32_t http_GetPlayerCount(string path) {
+    string response = http_Get(path);
+    std::istringstream resp(response);
+    string line;
+    uint32_t playerCount;
+    string searchString = "Players: ";
+    while (std::getline(resp, line)) {
+        uint32_t index = line.find(searchString, 0);
+        if (index != std::string::npos) {
+            playerCount = std::stoi(line.substr(index + searchString.size()));
+        }
+    }
+    
+    return playerCount;
 }
 
 //
@@ -207,8 +236,6 @@ int main( int argc, char **argv )
     uint16_t Port = 6125;
     gGProxy = new CGProxy( War3Version, Port );
 
-    const char *dotsURL = "thdots.ru";
-
     struct in_addr addr;
     struct hostent *remoteHost = gethostbyname(dotsURL);
     if (remoteHost == NULL) {
@@ -221,13 +248,13 @@ int main( int argc, char **argv )
     sscanf(ipaddress, "%hu.%hu.%hu.%hu", &a, &b, &c, &d);
     BYTEARRAY ip {a, b, c, d};
     
-    BYTEARRAY stats_dots1 = http_GetStats(dotsURL, "/old/stat_string_1/");
-    BYTEARRAY stats_dots2 = http_GetStats(dotsURL, "/old/stat_string_2/");
-    BYTEARRAY stats_tba = http_GetStats(dotsURL, "/old/stat_string_tba/");
+    BYTEARRAY stats_dots1 = http_GetStats("/old/stat_string_1/");
+    BYTEARRAY stats_dots2 = http_GetStats("/old/stat_string_2/");
+    BYTEARRAY stats_tba = http_GetStats("/old/stat_string_tba/");
 
-    gGProxy->AddGame(new CIncomingGameHost(0x2001, 0x48, 0, 6113, ip, 0x4000000, 0, "|c00FF0000TOHO DOTA", 11, 0x10000001, stats_dots1));
-    gGProxy->AddGame(new CIncomingGameHost(0x2001, 0x48, 0, 6117, ip, 0x4000000, 0, "|c00FF0000TOHO DOTA N2", 11, 0x10000001, stats_dots2));
-    gGProxy->AddGame(new CIncomingGameHost(0x2001, 0x48, 0, 6115, ip, 0x4000000, 0, "|c00FF0000TBA/CUSTOM", 11, 0x10000001, stats_tba));
+    gGProxy->AddGame(new CIncomingGameHost(0x2001, 0x48, 0, 6113, ip, 0x4000000, 0, game1Name, 11, 0x10000001, stats_dots1));
+    gGProxy->AddGame(new CIncomingGameHost(0x2001, 0x48, 0, 6117, ip, 0x4000000, 0, game2Name, 11, 0x10000001, stats_dots2));
+    gGProxy->AddGame(new CIncomingGameHost(0x2001, 0x48, 0, 6115, ip, 0x4000000, 0, gameTBAName, 11, 0x10000001, stats_tba));
 
     while( 1 )
     {
@@ -673,7 +700,20 @@ bool CGProxy :: Update( long usecBlock )
                 string GameName = (*i)->GetGameName( );
 
                 bool m_TFT = true;
-                m_UDPSocket->Broadcast( 6112, m_GameProtocol->SEND_W3GS_GAMEINFO( m_TFT, m_War3Version, MapGameType, MapFlags, MapWidth, MapHeight, GameName, (*i)->GetHostName( ), (*i)->GetElapsedTime( ), (*i)->GetMapPath( ), (*i)->GetMapCRC( ), 12, 12, m_Port, (*i)->GetUniqueGameID( ), (*i)->GetUniqueGameID( ) ) );
+
+                uint32_t prevOpenSlots = (*i)->GetOpenSlots();
+                if (GameName == game1Name) {
+                    (*i)->SetOpenSlots(13 - http_GetPlayerCount("/old/status.php"));
+                } else if (GameName == game2Name) {
+                    (*i)->SetOpenSlots(13 - http_GetPlayerCount("/old/status2.php"));
+                } else if (GameName == gameTBAName) {
+                    (*i)->SetOpenSlots(13 - http_GetPlayerCount("/old/status_tba.php"));
+                }
+                if (prevOpenSlots != (*i)->GetOpenSlots()) {
+		            m_UDPSocket->Broadcast( 6112, m_GameProtocol->SEND_W3GS_DECREATEGAME( (*i)->GetUniqueGameID( ) ) );
+                }
+
+                m_UDPSocket->Broadcast( 6112, m_GameProtocol->SEND_W3GS_GAMEINFO( m_TFT, m_War3Version, MapGameType, MapFlags, MapWidth, MapHeight, GameName, (*i)->GetHostName( ), (*i)->GetElapsedTime( ), (*i)->GetMapPath( ), (*i)->GetMapCRC( ), 12, (*i)->GetOpenSlots(), m_Port, (*i)->GetUniqueGameID( ), (*i)->GetUniqueGameID( ) ) );
                 i++;
             }
 

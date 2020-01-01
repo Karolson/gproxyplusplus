@@ -19,6 +19,7 @@ private:
 	uint32_t m_Status;
 	uint32_t m_ElapsedTime;
 	string m_GameName;
+	unsigned char m_OpenSlots;
 	unsigned char m_SlotsTotal;
 	uint32_t m_HostCounter;
 	BYTEARRAY m_StatString;
@@ -47,6 +48,7 @@ public:
 	uint32_t GetStatus( )			{ return m_Status; }
 	uint32_t GetElapsedTime( )		{ return m_ElapsedTime; }
 	string GetGameName( )			{ return m_GameName; }
+	unsigned char GetOpenSlots( )	{ return m_OpenSlots; }
 	unsigned char GetSlotsTotal( )	{ return m_SlotsTotal; }
 	uint32_t GetHostCounter( )		{ return m_HostCounter; }
 	BYTEARRAY GetStatString( )		{ return m_StatString; }
@@ -58,6 +60,8 @@ public:
 	BYTEARRAY GetMapCRC( )			{ return m_MapCRC; }
 	string GetMapPath( )			{ return m_MapPath; }
 	string GetHostName( )			{ return m_HostName; }
+
+	void SetOpenSlots( unsigned char count )	{ m_OpenSlots = count; }
 };
 
 #endif
