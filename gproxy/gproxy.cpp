@@ -46,7 +46,7 @@
  #include <mach/mach_time.h>
 #endif
 
-string gLogFile;
+string gLogFile = ".gproxy.log";
 CGProxy *gGProxy = NULL;
 
 uint32_t GetTime( )
@@ -106,38 +106,34 @@ void CONSOLE_Print( string message, bool log )
     cout << message << endl;
 }
 
-BYTEARRAY http_GetStats(string url, string path){
+BYTEARRAY http_GetStats(string url, string path) {
     WSADATA wsaData;
     SOCKET Socket;
     SOCKADDR_IN SockAddr;
-    int lineCount=0;
-    int rowCount=0;
     struct hostent *host;
     string get_http;
 
     get_http = "GET " + path + " HTTP/1.1\r\nHost: " + url + "\r\nConnection: close\r\n\r\n";
 
-    if (WSAStartup(MAKEWORD(2,2), &wsaData) != 0){
+    if (WSAStartup(MAKEWORD(2,2), &wsaData) != 0) {
         CONSOLE_Print( "WSAStartup failed.", true );
     }
 
-    Socket=socket(AF_INET,SOCK_STREAM,IPPROTO_TCP);
+    Socket = socket(AF_INET,SOCK_STREAM, IPPROTO_TCP);
     host = gethostbyname(url.c_str());
 
     SockAddr.sin_port=htons(80);
     SockAddr.sin_family=AF_INET;
     SockAddr.sin_addr.s_addr = *((unsigned long*)host->h_addr);
 
-    if(connect(Socket,(SOCKADDR*)(&SockAddr),sizeof(SockAddr)) != 0) {
+    if (connect(Socket, (SOCKADDR*)(&SockAddr), sizeof(SockAddr)) != 0) {
         CONSOLE_Print( "Could not connect", true );
     }
-    send(Socket,get_http.c_str(), strlen(get_http.c_str()),0 );
-
+    send(Socket, get_http.c_str(), strlen(get_http.c_str()), 0);
     
     char buffer[10000];
     string http_header;
     BYTEARRAY stats;
-    string sstats;
     int nDataLength;
     while ((nDataLength = recv(Socket, buffer, 10000, 0)) > 0) {
         int i = 0;
@@ -145,6 +141,7 @@ BYTEARRAY http_GetStats(string url, string path){
             http_header += (unsigned char)buffer[i];
             i += 1;
         }
+
         std::istringstream resp(http_header);
         std::string header;
         std::string::size_type index;
@@ -158,7 +155,6 @@ BYTEARRAY http_GetStats(string url, string path){
         }
         while (i < headerSize + contentLength) {
             stats.push_back((unsigned char)buffer[i]);
-            sstats += (unsigned char)buffer[i];
             i += 1;
         }
     }
@@ -175,8 +171,6 @@ BYTEARRAY http_GetStats(string url, string path){
 
 int main( int argc, char **argv )
 {
-    gLogFile = ".gproxy.log";
-
     CONSOLE_Print( "[GPROXY] starting up" );
 
 #ifndef WIN32
@@ -231,9 +225,9 @@ int main( int argc, char **argv )
     BYTEARRAY stats_dots2 = http_GetStats(dotsURL, "/old/stat_string_2/");
     BYTEARRAY stats_tba = http_GetStats(dotsURL, "/old/stat_string_tba/");
 
-    gGProxy->AddGame( new CIncomingGameHost( 0x2001, 0x48, 0, 6113, ip, 0x4000000, 0, "|c00FF0000TOHO DOTA", 11, 0x10000001, stats_dots1 ) );
-    gGProxy->AddGame( new CIncomingGameHost( 0x2001, 0x48, 0, 6117, ip, 0x4000000, 0, "|c00FF0000TOHO DOTA N2", 11, 0x10000001, stats_dots2 ) );
-    gGProxy->AddGame( new CIncomingGameHost( 0x2001, 0x48, 0, 6115, ip, 0x4000000, 0, "|c00FF0000TBA/CUSTOM", 11, 0x10000001, stats_tba ) );
+    gGProxy->AddGame(new CIncomingGameHost(0x2001, 0x48, 0, 6113, ip, 0x4000000, 0, "|c00FF0000TOHO DOTA", 11, 0x10000001, stats_dots1));
+    gGProxy->AddGame(new CIncomingGameHost(0x2001, 0x48, 0, 6117, ip, 0x4000000, 0, "|c00FF0000TOHO DOTA N2", 11, 0x10000001, stats_dots2));
+    gGProxy->AddGame(new CIncomingGameHost(0x2001, 0x48, 0, 6115, ip, 0x4000000, 0, "|c00FF0000TBA/CUSTOM", 11, 0x10000001, stats_tba));
 
     while( 1 )
     {
