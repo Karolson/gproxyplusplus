@@ -49,9 +49,9 @@
 string gLogFile = ".gproxy.log";
 CGProxy *gGProxy = NULL;
 const char *dotsURL = "thdots.ru";
-string game1Name = "|c00FF0000TOHO DOTA";
-string game2Name = "|c00FF0000TOHO DOTA N2";
-string gameTBAName = "|c00FF0000TBA/CUSTOM";
+string game1Name = "TOHO DOTA";
+string game2Name = "TOHO DOTA N2";
+string gameTBAName = "TBA/CUSTOM";
 
 uint32_t GetTime( )
 {
@@ -188,10 +188,52 @@ uint32_t http_GetPlayerCount(string path) {
         uint32_t index = line.find(searchString, 0);
         if (index != std::string::npos) {
             playerCount = std::stoi(line.substr(index + searchString.size()));
+            break;
         }
     }
     
     return playerCount;
+}
+
+GAME_STATUS http_GetGameStatus(string path) {
+    string response = http_Get(path);
+    std::istringstream resp(response);
+    string line;
+    GAME_STATUS status;
+    string searchString = "Players: ";
+    while (std::getline(resp, line)) {
+        uint32_t index;
+        index = line.find("Status: ", 0);
+        if (index != std::string::npos) {
+            index = line.find("Online - lobby", 0);
+            if (index != std::string::npos) {
+                status = GAME_STATUS::LOBBY;
+                break;
+            }
+            index = line.find("Online - loading", 0);
+            if (index != std::string::npos) {
+                status = GAME_STATUS::LOADING;
+                break;
+            }
+            index = line.find("Game in progress", 0);
+            if (index != std::string::npos) {
+                status = GAME_STATUS::LOADED;
+                break;
+            }
+            index = line.find("Game rehosts. Please wait.", 0);
+            if (index != std::string::npos) {
+                status = GAME_STATUS::REHOSTING;
+                break;
+            }
+            index = line.find("Offline", 0);
+            if (index != std::string::npos) {
+                status = GAME_STATUS::OFFLINE;
+                break;
+            }
+        }
+    }
+    
+    return status;
 }
 
 //
@@ -702,14 +744,30 @@ bool CGProxy :: Update( long usecBlock )
                 bool m_TFT = true;
 
                 uint32_t prevOpenSlots = (*i)->GetOpenSlots();
+                string prevGameName = (*i)->GetGameName();
+                GAME_STATUS status;
                 if (GameName == game1Name) {
                     (*i)->SetOpenSlots(13 - http_GetPlayerCount("/old/status.php"));
+                    status = http_GetGameStatus("/old/status.php");
                 } else if (GameName == game2Name) {
                     (*i)->SetOpenSlots(13 - http_GetPlayerCount("/old/status2.php"));
+                    status = http_GetGameStatus("/old/status2.php");
                 } else if (GameName == gameTBAName) {
                     (*i)->SetOpenSlots(13 - http_GetPlayerCount("/old/status_tba.php"));
+                    status = http_GetGameStatus("/old/status_tba.php");
                 }
-                if (prevOpenSlots != (*i)->GetOpenSlots()) {
+
+                if (status == GAME_STATUS::LOBBY) {
+                    GameName = "|c00FF0000" + GameName;
+                } else if (status == GAME_STATUS::LOADING || status == GAME_STATUS::LOADED) {
+                    GameName = "|c007d7d7d" + GameName + "(started)";
+                } else if (status == GAME_STATUS::REHOSTING) {
+                    GameName = "|c00FF7F00" + GameName + "(rehost)";
+                } else if (status == GAME_STATUS::OFFLINE) {
+                    GameName = "|c00505050" + GameName + "(offline)";
+                }
+
+                if (prevOpenSlots != (*i)->GetOpenSlots() || prevGameName != GameName) {
 		            m_UDPSocket->Broadcast( 6112, m_GameProtocol->SEND_W3GS_DECREATEGAME( (*i)->GetUniqueGameID( ) ) );
                 }
 

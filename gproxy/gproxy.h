@@ -72,6 +72,8 @@ void CONSOLE_RemoveChannelUsers( );
 void CONSOLE_Draw( );
 void CONSOLE_Resize( );
 
+enum GAME_STATUS { LOBBY, LOADING, LOADED, REHOSTING, OFFLINE };
+
 //
 // CGProxy
 //
