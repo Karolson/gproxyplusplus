@@ -24,6 +24,7 @@ CIncomingGameHost :: CIncomingGameHost( uint16_t nGameType, uint16_t nParameter,
 	m_StatString = nStatString;
 	m_UniqueGameID = NextUniqueGameID++;
 	m_ReceivedTime = GetTime( );
+	m_GameStatus = GAME_STATUS::LOBBY;
 
 	// decode stat string
 

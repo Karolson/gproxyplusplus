@@ -25,6 +25,7 @@ private:
 	BYTEARRAY m_StatString;
 	uint32_t m_UniqueGameID;
 	uint32_t m_ReceivedTime;
+	GAME_STATUS m_GameStatus;
 
 	// decoded from stat string:
 
@@ -60,8 +61,10 @@ public:
 	BYTEARRAY GetMapCRC( )			{ return m_MapCRC; }
 	string GetMapPath( )			{ return m_MapPath; }
 	string GetHostName( )			{ return m_HostName; }
+	GAME_STATUS GetGameStatus( )	{ return m_GameStatus; }
 
 	void SetOpenSlots( unsigned char count )	{ m_OpenSlots = count; }
+	void SetGameStatus( GAME_STATUS status )	{ m_GameStatus = status; }
 };
 
 #endif

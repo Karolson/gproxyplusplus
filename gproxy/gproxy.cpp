@@ -744,18 +744,19 @@ bool CGProxy :: Update( long usecBlock )
 
                 uint32_t prevOpenSlots = (*i)->GetOpenSlots();
                 string prevGameName = (*i)->GetGameName();
-                GAME_STATUS status;
+                GAME_STATUS prevStatus = (*i)->GetGameStatus();
                 if (GameName == game1Name) {
                     (*i)->SetOpenSlots(13 - http_GetPlayerCount("/old/status.php"));
-                    status = http_GetGameStatus("/old/status.php");
+                    (*i)->SetGameStatus(http_GetGameStatus("/old/status.php"));
                 } else if (GameName == game2Name) {
                     (*i)->SetOpenSlots(13 - http_GetPlayerCount("/old/status2.php"));
-                    status = http_GetGameStatus("/old/status2.php");
+                    (*i)->SetGameStatus(http_GetGameStatus("/old/status2.php"));
                 } else if (GameName == gameTBAName) {
                     (*i)->SetOpenSlots(13 - http_GetPlayerCount("/old/status_tba.php"));
-                    status = http_GetGameStatus("/old/status_tba.php");
+                    (*i)->SetGameStatus(http_GetGameStatus("/old/status_tba.php"));
                 }
 
+                GAME_STATUS status = (*i)->GetGameStatus();
                 if (status == GAME_STATUS::LOBBY) {
                     GameName = "|c00FF0000" + GameName;
                 } else if (status == GAME_STATUS::LOADING || status == GAME_STATUS::LOADED) {
@@ -766,7 +767,7 @@ bool CGProxy :: Update( long usecBlock )
                     GameName = "|c00505050" + GameName + "(offline)";
                 }
 
-                if (prevOpenSlots != (*i)->GetOpenSlots() || prevGameName != GameName) {
+                if (prevOpenSlots != (*i)->GetOpenSlots() || prevStatus != status) {
 		            m_UDPSocket->Broadcast( 6112, m_GameProtocol->SEND_W3GS_DECREATEGAME( (*i)->GetUniqueGameID( ) ) );
                 }
 
