@@ -219,7 +219,7 @@ GAME_STATUS http_GetGameStatus(string path) {
                 status = GAME_STATUS::LOADED;
                 break;
             }
-            index = line.find("Game rehosts. Please wait.", 0);
+            index = line.find("Game rehosts.", 0);
             if (index != std::string::npos) {
                 status = GAME_STATUS::REHOSTING;
                 break;
