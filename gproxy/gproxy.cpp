@@ -200,7 +200,6 @@ GAME_STATUS http_GetGameStatus(string path) {
     std::istringstream resp(response);
     string line;
     GAME_STATUS status;
-    string searchString = "Players: ";
     while (std::getline(resp, line)) {
         uint32_t index;
         index = line.find("Status: ", 0);
