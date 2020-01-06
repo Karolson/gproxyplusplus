@@ -27,7 +27,6 @@
 #include "gpsprotocol.h"
 #include "incominggamehost.h"
 #include <cstring>
-#include <thread>
 
 #include <signal.h>
 #include <stdlib.h>
@@ -236,6 +235,20 @@ GAME_STATUS http_GetGameStatus(string path) {
     return status;
 }
 
+void shutdown () 
+{
+    CONSOLE_Print( "[GPROXY] shutting down" );
+    delete gGProxy;
+    gGProxy = NULL;
+
+#ifdef WIN32
+    // shutdown winsock
+
+    CONSOLE_Print( "[GPROXY] shutting down winsock" );
+    WSACleanup( );
+#endif
+}
+
 //
 // main
 //
@@ -306,32 +319,7 @@ int main( )
 
     // shutdown gproxy
 
-    CONSOLE_Print( "[GPROXY] shutting down" );
-    delete gGProxy;
-    gGProxy = NULL;
-
-#ifdef WIN32
-    // shutdown winsock
-
-    CONSOLE_Print( "[GPROXY] shutting down winsock" );
-    WSACleanup( );
-#endif
-
-    return 0;
-}
-
-void shutdown () 
-{
-    CONSOLE_Print( "[GPROXY] shutting down" );
-    delete gGProxy;
-    gGProxy = NULL;
-
-#ifdef WIN32
-    // shutdown winsock
-
-    CONSOLE_Print( "[GPROXY] shutting down winsock" );
-    WSACleanup( );
-#endif
+    shutdown();
 }
 
 DWORD WINAPI ThreadMain(LPVOID lpParam)
