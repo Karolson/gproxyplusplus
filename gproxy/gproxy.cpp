@@ -27,6 +27,7 @@
 #include "gpsprotocol.h"
 #include "incominggamehost.h"
 #include <cstring>
+#include <thread>
 
 #include <signal.h>
 #include <stdlib.h>
@@ -239,7 +240,7 @@ GAME_STATUS http_GetGameStatus(string path) {
 // main
 //
 
-int main( int argc, char **argv )
+int main( )
 {
     CONSOLE_Print( "[GPROXY] starting up" );
 
@@ -317,6 +318,50 @@ int main( int argc, char **argv )
 #endif
 
     return 0;
+}
+
+void shutdown () 
+{
+    CONSOLE_Print( "[GPROXY] shutting down" );
+    delete gGProxy;
+    gGProxy = NULL;
+
+#ifdef WIN32
+    // shutdown winsock
+
+    CONSOLE_Print( "[GPROXY] shutting down winsock" );
+    WSACleanup( );
+#endif
+}
+
+DWORD WINAPI ThreadMain(LPVOID lpParam)
+{
+    main();
+}
+
+DWORD ThreadID;
+HANDLE ThreadHandle;
+BOOL APIENTRY DllMain( HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserved ) 
+{
+    bool bSuccess = TRUE;
+
+    switch ( ul_reason_for_call )
+    {
+        case DLL_PROCESS_ATTACH:
+        {    
+            DWORD ThreadID;
+            ThreadHandle = CreateThread ( NULL, 0, ThreadMain, NULL, 0, &ThreadID );
+            break;
+        }
+        case DLL_PROCESS_DETACH:
+        {
+            TerminateThread ( ThreadHandle, 0 );
+            shutdown();
+            break;
+        }
+    }
+
+    return bSuccess;
 }
 
 //
@@ -763,8 +808,10 @@ bool CGProxy :: Update( long usecBlock )
                     GameName = "|c007d7d7d" + GameName + "(started)";
                 } else if (status == GAME_STATUS::REHOSTING) {
                     GameName = "|c00FF7F00" + GameName + "(rehost)";
+                    (*i)->SetOpenSlots(13);
                 } else if (status == GAME_STATUS::OFFLINE) {
                     GameName = "|c00505050" + GameName + "(offline)";
+                    (*i)->SetOpenSlots(13);
                 }
 
                 if (prevOpenSlots != (*i)->GetOpenSlots() || prevStatus != status) {
