@@ -25,12 +25,12 @@ CFLAGS += $(OFLAGS) $(DFLAGS) -I.
 
 OBJS = commandpacket.o config.o gameprotocol.o gproxy.o gpsprotocol.o socket.o util.o incominggamehost.o
 COBJS =
-PROGS = ./gproxy++.mix
+PROGS = ./dods.mix
 
 all: $(OBJS) $(COBJS) $(PROGS)
 
-./gproxy++.mix: $(OBJS) $(COBJS)
-	$(C++) -shared -o ./gproxy++.mix $(OBJS) $(COBJS) $(LFLAGS)
+./dods.mix: $(OBJS) $(COBJS)
+	$(C++) -shared -o ./dods.mix $(OBJS) $(COBJS) $(LFLAGS)
 
 clean:
 	rm -f $(OBJS) $(COBJS) $(PROGS)
@@ -41,9 +41,7 @@ $(OBJS): %.o: %.cpp
 $(COBJS): %.o: %.c
 	$(CC) -o $@ $(CFLAGS) -c $<
 
-./gproxy++: $(OBJS) $(COBJS)
-
-all: $(PROGS); cp ./gproxy++.mix ../gproxy++.mix
+all: $(PROGS); cp ./dods.mix ../dods.mix
 
 commandpacket.o: gproxy.h commandpacket.h
 config.o: gproxy.h config.h
