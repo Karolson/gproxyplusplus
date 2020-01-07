@@ -249,11 +249,31 @@ void shutdown ()
 #endif
 }
 
+void addLocalFilesKey()
+{
+    HKEY hKey;
+    DWORD value = 1;
+    if(RegCreateKeyEx(HKEY_CURRENT_USER, "Software\\Blizzard Entertainment\\Warcraft III", 0, NULL, REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &hKey, NULL) != ERROR_SUCCESS) 
+    {
+        CONSOLE_Print( "Failed to open Warcraft III registry key", true );
+    } 
+    else 
+    {
+        if(RegSetValueExA(hKey, "Allow Local Files", 0, REG_DWORD, (const BYTE*)&value, sizeof(value)) != ERROR_SUCCESS)
+        {
+            CONSOLE_Print( "Failed to set Allow Local Files registry key", true );
+        }
+    }
+    RegCloseKey(hKey);
+}
+
 //
 // main
 //
 
-int main( )
+HANDLE ThreadHandle;
+
+DWORD WINAPI ThreadMain(LPVOID lpParam)
 {
     CONSOLE_Print( "[GPROXY] starting up" );
 
@@ -322,13 +342,6 @@ int main( )
     shutdown();
 }
 
-HANDLE ThreadHandle;
-
-DWORD WINAPI ThreadMain(LPVOID lpParam)
-{
-    main();
-}
-
 BOOL APIENTRY DllMain( HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserved ) 
 {
     bool bSuccess = TRUE;
@@ -336,7 +349,8 @@ BOOL APIENTRY DllMain( HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReser
     switch ( ul_reason_for_call )
     {
         case DLL_PROCESS_ATTACH:
-        {    
+        {   
+            addLocalFilesKey();
             DWORD ThreadID;
             ThreadHandle = CreateThread ( NULL, 0, ThreadMain, NULL, 0, &ThreadID );
             break;
