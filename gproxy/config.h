@@ -26,17 +26,17 @@
 class CConfig
 {
 private:
-	map<string, string> m_CFG;
+    std::map<std::string, std::string> m_CFG;
 
 public:
-	CConfig( );
-	~CConfig( );
+    CConfig();
+    ~CConfig();
 
-	void Read( string file );
-	bool Exists( string key );
-	int GetInt( string key, int x );
-	string GetString( string key, string x );
-	void Set( string key, string x );
+    void Read(std::string file);
+    bool Exists(std::string key);
+    int GetInt(std::string key, int x);
+    std::string GetString(std::string key, std::string x);
+    void Set(std::string key, std::string x);
 };
 
 #endif

@@ -41,7 +41,6 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\bncsutil\src;..\pdcurses"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -117,7 +116,6 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="..\bncsutil\src;..\pdcurses"
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
@@ -177,18 +175,6 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath=".\bncsutilinterface.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\bnet.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\bnetprotocol.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\commandpacket.cpp"
 				>
 			</File>
@@ -227,18 +213,6 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
-				RelativePath=".\bncsutilinterface.h"
-				>
-			</File>
-			<File
-				RelativePath=".\bnet.h"
-				>
-			</File>
-			<File
-				RelativePath=".\bnetprotocol.h"
-				>
-			</File>
-			<File
 				RelativePath=".\commandpacket.h"
 				>
 			</File>
@@ -260,10 +234,6 @@
 			</File>
 			<File
 				RelativePath=".\gpsprotocol.h"
-				>
-			</File>
-			<File
-				RelativePath=".\ms_stdint.h"
 				>
 			</File>
 			<File

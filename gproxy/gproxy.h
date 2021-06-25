@@ -19,16 +19,6 @@
 #ifndef GPROXY_H
 #define GPROXY_H
 
-// standard integer sizes for 64 bit compatibility
-
-#ifdef _MSC_VER
- #include "ms_stdint.h"
-#else
- #include <stdint.h>
-#endif
-
-// STL
-
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -39,21 +29,16 @@
 #include <set>
 #include <string>
 #include <vector>
+#include "config.h"
 
-using namespace std;
-
-typedef vector<unsigned char> BYTEARRAY;
+typedef std::vector<unsigned char> BYTEARRAY;
 
 // time
 
-uint32_t GetTime( );		// seconds
-uint32_t GetTicks( );		// milliseconds
+uint32_t GetTime();  // seconds
+uint32_t GetTicks(); // milliseconds
 
-#ifdef WIN32
- #define MILLISLEEP( x ) Sleep( x )
-#else
- #define MILLISLEEP( x ) usleep( ( x ) * 1000 )
-#endif
+#define MILLISLEEP(x) Sleep(x)
 
 // network
 
@@ -62,17 +47,24 @@ uint32_t GetTicks( );		// milliseconds
 
 // output
 
-void LOG_Print( string message );
-void CONSOLE_Print( string message, bool log = true );
-void CONSOLE_PrintNoCRLF( string message, bool log = true );
-void CONSOLE_ChangeChannel( string channel );
-void CONSOLE_AddChannelUser( string name );
-void CONSOLE_RemoveChannelUser( string name );
-void CONSOLE_RemoveChannelUsers( );
-void CONSOLE_Draw( );
-void CONSOLE_Resize( );
+void LOG_Print(std::string message);
+void CONSOLE_Print(std::string message, bool log = true);
+void CONSOLE_PrintNoCRLF(std::string message, bool log = true);
+void CONSOLE_ChangeChannel(std::string channel);
+void CONSOLE_AddChannelUser(std::string name);
+void CONSOLE_RemoveChannelUser(std::string name);
+void CONSOLE_RemoveChannelUsers();
+void CONSOLE_Draw();
+void CONSOLE_Resize();
 
-enum GAME_STATUS { LOBBY, LOADING, LOADED, REHOSTING, OFFLINE };
+enum GAME_STATUS
+{
+    LOBBY,
+    LOADING,
+    LOADED,
+    REHOSTING,
+    OFFLINE
+};
 
 //
 // CGProxy
@@ -90,18 +82,20 @@ class CCommandPacket;
 class CGProxy
 {
 public:
-    string m_Version;
+    std::string m_Version;
+    CConfig *m_Config;
     CTCPServer *m_LocalServer;
     CTCPSocket *m_LocalSocket;
     CTCPClient *m_RemoteSocket;
     CUDPSocket *m_UDPSocket;
-    vector<CIncomingGameHost *> m_Games;
+    std::vector<CTCPClient *> m_GameInfoSockets;
+    std::vector<CIncomingGameHost *> m_Games;
     CGameProtocol *m_GameProtocol;
     CGPSProtocol *m_GPSProtocol;
-    queue<CCommandPacket *> m_LocalPackets;
-    queue<CCommandPacket *> m_RemotePackets;
-    queue<CCommandPacket *> m_PacketBuffer;
-    vector<unsigned char> m_Laggers;
+    std::queue<CCommandPacket *> m_LocalPackets;
+    std::queue<CCommandPacket *> m_RemotePackets;
+    std::queue<CCommandPacket *> m_PacketBuffer;
+    std::vector<unsigned char> m_Laggers;
     uint32_t m_TotalPacketsReceivedFromLocal;
     uint32_t m_TotalPacketsReceivedFromRemote;
     bool m_Exiting;
@@ -109,7 +103,7 @@ public:
     uint16_t m_Port;
     uint32_t m_LastConnectionAttemptTime;
     uint32_t m_LastRefreshTime;
-    string m_RemoteServerIP;
+    std::string m_RemoteServerIP;
     uint16_t m_RemoteServerPort;
     bool m_GameIsReliable;
     bool m_GameStarted;
@@ -124,24 +118,24 @@ public:
     unsigned char m_NumEmptyActionsUsed;
     uint32_t m_LastAckTime;
     uint32_t m_LastActionTime;
-    string m_JoinedName;
-    string m_HostName;
+    std::string m_JoinedName;
+    std::string m_HostName;
 
-    CGProxy( uint32_t nWar3Version, uint16_t nPort );
-    ~CGProxy( );
+    CGProxy(uint32_t nWar3Version, uint16_t nPort, CConfig *nConfig);
+    ~CGProxy();
 
     // processing functions
 
-    bool Update( long usecBlock );
+    bool Update(long usecBlock);
 
-    void ExtractLocalPackets( );
-    void ProcessLocalPackets( );
-    void ExtractRemotePackets( );
-    void ProcessRemotePackets( );
+    void ExtractLocalPackets();
+    void ProcessLocalPackets();
+    void ExtractRemotePackets();
+    void ProcessRemotePackets();
 
-    bool AddGame( CIncomingGameHost *game );
-    void SendLocalChat( string message );
-    void SendEmptyAction( );
+    bool AddGame(CIncomingGameHost *game);
+    void SendLocalChat(std::string message);
+    void SendEmptyAction();
 };
 
 #endif

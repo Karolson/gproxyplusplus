@@ -3,36 +3,22 @@ SYSTEM = $(shell uname)
 C++ = i686-w64-mingw32-g++
 CC = i686-w64-mingw32-gcc
 DFLAGS =
-OFLAGS = -O2
-LFLAGS = -static -static-libgcc -static-libstdc++ -L. -lwinmm -lwsock32 -lgmp.dll -lssp
-CFLAGS =
-
-ifeq ($(SYSTEM),Darwin)
-DFLAGS += -D__APPLE__
-OFLAGS += -flat_namespace
-endif
-
-ifeq ($(SYSTEM),FreeBSD)
-DFLAGS += -D__FREEBSD__
-endif
-
-ifeq ($(SYSTEM),SunOS)
-DFLAGS += -D__SOLARIS__
-LFLAGS += -lresolv -lsocket -lnsl
-endif
+OFLAGS = -m32 -O2 -march=i486 -mtune=generic -flto
+LFLAGS = -static -static-libgcc -static-libstdc++ -L. -lwinmm -lwsock32
+CFLAGS = -w
 
 CFLAGS += $(OFLAGS) $(DFLAGS) -I.
 
 OBJS = commandpacket.o config.o gameprotocol.o gproxy.o gpsprotocol.o socket.o util.o incominggamehost.o
 COBJS =
-PROGS = ./dods.mix
+PROGS = dods.mix
 
 all: $(OBJS) $(COBJS) $(PROGS)
 
-./dods.mix: $(OBJS) $(COBJS)
-	$(C++) -shared -o ./dods.mix $(OBJS) $(COBJS) $(LFLAGS)
+dods.mix: $(OBJS) $(COBJS)
+	$(C++) -shared -o dods.mix $(OBJS) $(COBJS) $(LFLAGS)
 
-clean:
+clear:
 	rm -f $(OBJS) $(COBJS) $(PROGS)
 
 $(OBJS): %.o: %.cpp
@@ -41,7 +27,7 @@ $(OBJS): %.o: %.cpp
 $(COBJS): %.o: %.c
 	$(CC) -o $@ $(CFLAGS) -c $<
 
-all: $(PROGS); cp ./dods.mix ../dods.mix
+all: clear; strip dods.mix; mv dods.mix ../dods.mix
 
 commandpacket.o: gproxy.h commandpacket.h
 config.o: gproxy.h config.h

@@ -5,8 +5,10 @@
 release
 debug
 
-# Files created by Mac terminal compile
 *.dylib
 gproxy/gproxy++
 *.o
 .DS_Store
+gproxy/.*
+.*
+!/.gitignore
