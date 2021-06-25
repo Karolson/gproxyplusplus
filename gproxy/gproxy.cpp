@@ -168,15 +168,6 @@ DWORD WINAPI ThreadMain(LPVOID lpParam)
     uint16_t Port = 6125;
     gGProxy = new CGProxy(War3Version, Port, Config);
 
-    for (const uint16_t port : gameInfoPorts)
-    {
-        CTCPClient *tcpClient = new CTCPClient();
-        tcpClient->Reset();
-        tcpClient->SetNoDelay(true);
-        tcpClient->Connect(std::string(), std::string(dotsURL), port);
-        gGProxy->m_GameInfoSockets.push_back(tcpClient);
-    }
-
     struct in_addr addr;
     struct hostent *remoteHost = gethostbyname(dotsURL.c_str());
     if (remoteHost == NULL)
@@ -356,56 +347,6 @@ bool CGProxy::Update(long usecBlock)
         MILLISLEEP(50);
 
     //
-    // handle game info
-    //
-
-    for (CTCPClient *gameInfoSocket : m_GameInfoSockets)
-    {
-        if (gameInfoSocket->HasError() || (!gameInfoSocket->GetConnected() && !gameInfoSocket->GetConnecting()))
-        {
-            gameInfoSocket->Reset();
-            gameInfoSocket->SetNoDelay(true);
-            gameInfoSocket->Connect(std::string(), std::string(dotsURL), gameInfoSocket->GetPort());
-        }
-        else if (gameInfoSocket->GetConnecting())
-        {
-            if (gameInfoSocket->CheckConnect())
-            {
-            }
-        }
-        else if (gameInfoSocket->GetConnected())
-        {
-            gameInfoSocket->DoRecv(&fd);
-            std::string *RecvBuffer = gameInfoSocket->GetBytes();
-            BYTEARRAY Bytes = UTIL_CreateByteArray((unsigned char *)RecvBuffer->c_str(), RecvBuffer->size());
-            gameInfoSocket->ClearRecvBuffer();
-
-            if (Bytes.size() >= 4)
-            {
-                std::string head = std::string(Bytes.begin(), Bytes.begin() + 4);
-                uint32_t i = 4;
-                if (head == "GAME")
-                {
-                    uint16_t port = UTIL_ByteArrayToUInt16(Bytes, false, i);
-                    i += sizeof(port);
-                    uint8_t open_slots = Bytes.at(i);
-                    i += sizeof(open_slots);
-                    uint8_t slots_total = Bytes.at(i);
-                    i += sizeof(slots_total);
-                    uint8_t game_name_size = Bytes.at(i);
-                    i += sizeof(game_name_size);
-                    std::string game_name = std::string(Bytes.begin() + i, Bytes.begin() + i + game_name_size);
-                    i += game_name_size;
-                    uint8_t stat_string_size = Bytes.at(i);
-                    i += sizeof(stat_string_size);
-                    BYTEARRAY stat_string = BYTEARRAY(Bytes.begin() + i, Bytes.begin() + i + stat_string_size);
-                    gGProxy->AddGame(new CIncomingGameHost(0, 0, port, ip, 0, game_name, open_slots, slots_total, 0x10000001, stat_string));
-                }
-            }
-        }
-    }
-
-    //
     // accept new connections
     //
 
@@ -448,6 +389,9 @@ bool CGProxy::Update(long usecBlock)
                 delete m_PacketBuffer.front();
                 m_PacketBuffer.pop();
             }
+
+            for (std::vector<CTCPClient *>::iterator i = m_GameInfoSockets.begin(); i != m_GameInfoSockets.end(); i++)
+                (*i)->Disconnect();
         }
     }
 
@@ -686,6 +630,64 @@ bool CGProxy::Update(long usecBlock)
         //
         // handle game listing
         //
+
+        if (m_GameInfoSockets.size() == 0)
+        {
+            for (const uint16_t port : gameInfoPorts)
+            {
+                CTCPClient *tcpClient = new CTCPClient();
+                tcpClient->Reset();
+                tcpClient->SetNoDelay(true);
+                tcpClient->Connect(std::string(), std::string(dotsURL), port);
+                gGProxy->m_GameInfoSockets.push_back(tcpClient);
+            }
+        }
+
+        for (CTCPClient *gameInfoSocket : m_GameInfoSockets)
+        {
+            if (gameInfoSocket->HasError() || (!gameInfoSocket->GetConnected() && !gameInfoSocket->GetConnecting()))
+            {
+                gameInfoSocket->Reset();
+                gameInfoSocket->SetNoDelay(true);
+                gameInfoSocket->Connect(std::string(), std::string(dotsURL), gameInfoSocket->GetPort());
+            }
+            else if (gameInfoSocket->GetConnecting())
+            {
+                if (gameInfoSocket->CheckConnect())
+                {
+                }
+            }
+            else if (gameInfoSocket->GetConnected())
+            {
+                gameInfoSocket->DoRecv(&fd);
+                std::string *RecvBuffer = gameInfoSocket->GetBytes();
+                BYTEARRAY Bytes = UTIL_CreateByteArray((unsigned char *)RecvBuffer->c_str(), RecvBuffer->size());
+                gameInfoSocket->ClearRecvBuffer();
+
+                if (Bytes.size() >= 4)
+                {
+                    std::string head = std::string(Bytes.begin(), Bytes.begin() + 4);
+                    uint32_t i = 4;
+                    if (head == "GAME")
+                    {
+                        uint16_t port = UTIL_ByteArrayToUInt16(Bytes, false, i);
+                        i += sizeof(port);
+                        uint8_t open_slots = Bytes.at(i);
+                        i += sizeof(open_slots);
+                        uint8_t slots_total = Bytes.at(i);
+                        i += sizeof(slots_total);
+                        uint8_t game_name_size = Bytes.at(i);
+                        i += sizeof(game_name_size);
+                        std::string game_name = std::string(Bytes.begin() + i, Bytes.begin() + i + game_name_size);
+                        i += game_name_size;
+                        uint8_t stat_string_size = Bytes.at(i);
+                        i += sizeof(stat_string_size);
+                        BYTEARRAY stat_string = BYTEARRAY(Bytes.begin() + i, Bytes.begin() + i + stat_string_size);
+                        gGProxy->AddGame(new CIncomingGameHost(0, 0, port, ip, 0, game_name, open_slots, slots_total, 0x10000001, stat_string));
+                    }
+                }
+            }
+        }
 
         if (GetTime() - m_LastRefreshTime >= 2)
         {
